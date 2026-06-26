@@ -6,6 +6,8 @@ import { config } from "./config";
 import { prisma } from "./lib/prisma";
 
 import bcrypt from "bcrypt";
+import { userRoutes } from "./module/users/user.route";
+import { authRouters } from "./module/auth/auth.route";
 
 export const app: Application = express();
 
@@ -22,7 +24,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
-app.use("/api/users/")
+
+
+app.use("/api/users", userRoutes)
+app.use("/api/auth", authRouters)
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World");
