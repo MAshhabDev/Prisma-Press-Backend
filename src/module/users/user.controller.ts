@@ -33,9 +33,7 @@ const getMyProfile = catchAsync(
     //   throw new Error(verifiedToken);
     // }
 
-    const result = await userService.getMyProfileInToDb(
-      req.user?.id as string,
-    );
+    const result = await userService.getMyProfileInToDb(req.user?.id as string);
 
     sendResponse(res, {
       success: true,
@@ -46,7 +44,35 @@ const getMyProfile = catchAsync(
   },
 );
 
+const updateMyProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // const { accessToken } = req.cookies;
+
+    // const verifiedToken = jwtUtils.verifyToken(
+    //   accessToken,
+    //   config.jwt_access_secret,
+    // );
+
+    // if (typeof verifiedToken === "string") {
+    //   throw new Error(verifiedToken);
+    // }
+
+    const id = req.user?.id as string;
+    const payload = req.body;
+
+    const result = await userService.updateMyProfileInToDb(id, payload);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User Profile Updated Successfully",
+      data: { result },
+    });
+  },
+);
+
 export const userController = {
   createUser,
   getMyProfile,
+  updateMyProfile,
 };
