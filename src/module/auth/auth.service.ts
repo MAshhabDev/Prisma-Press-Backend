@@ -1,8 +1,10 @@
 import { prisma } from "../../lib/prisma";
 import bcrypt from "bcrypt";
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { SignOptions, type JwtPayload } from "jsonwebtoken";
 import { config } from "../../config";
 import type { ILogin } from "./auth.interface";
+import { ref } from "node:process";
+import { jwtUtils } from "../../utils/jwt";
 
 const logInUserInToDb = async (payload: ILogin) => {
   const { email, password } = payload;
@@ -11,7 +13,6 @@ const logInUserInToDb = async (payload: ILogin) => {
       email,
     },
   });
-
 
   const matchPass = await bcrypt.compare(password, user.password);
 
@@ -37,4 +38,41 @@ const logInUserInToDb = async (payload: ILogin) => {
   return { accessToken, refreshToken };
 };
 
-export const authService = { logInUserInToDb };
+const refreshTokenInToDb = async (refreshToken: string) => {
+  const verified = jwtUtils.verifyToken(
+    refreshToken,
+    config.jwt_refresh_secret,
+  );
+
+  if (!verified.success) {
+    throw new Error(verified.error);
+  }
+
+  const { id } = verified.data as JwtPayload;
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  });
+  if (user.activeStatus === "BLOCKED") {
+    throw new Error("User is blocked!");
+  }
+
+  const jwtPayload = {
+    id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as SignOptions,
+  );
+
+  return { accessToken };
+};
+
+export const authService = { logInUserInToDb, refreshTokenInToDb };
