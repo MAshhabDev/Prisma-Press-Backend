@@ -1,0 +1,17 @@
+model comment {
+  id         String   @id @default(uuid())
+  content    String   @db.Text
+  status     Status   @default(APPROVED)
+  create_at  DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  postId String
+
+  post post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+}
