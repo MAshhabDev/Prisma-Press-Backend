@@ -6,7 +6,7 @@ model post {
   isFeatured Boolean    @default(false)
   status     PostStatus @default(PUBLISHED)
   tags       String[]
-  views      Int
+  views      Int        @default(0)
   create_at  DateTime   @default(now())
   updated_at DateTime   @updatedAt
 
