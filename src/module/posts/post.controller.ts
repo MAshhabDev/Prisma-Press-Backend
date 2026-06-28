@@ -72,6 +72,9 @@ const createPost = catchAsync(
 const updatePost = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const postId = req.params.id;
+    if (!postId) {
+      throw new Error("No Post Id");
+    }
 
     const authorId = req.user?.id;
     const isAdmin = req.user?.role === "ADMIN";
@@ -95,7 +98,27 @@ const updatePost = catchAsync(
 );
 
 const deletePost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const postId = req.params.id;
+    if (!postId) {
+      throw new Error("No Post Id");
+    }
+
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+    const result = await postService.deletePost(
+      postId as string,
+      authorId as string,
+      isAdmin,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Post Deleted Done",
+      data: null,
+    });
+  },
 );
 
 export const postController = {
