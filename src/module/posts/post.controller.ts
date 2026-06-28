@@ -21,12 +21,10 @@ const getPostStats = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {},
 );
 
-
 const getMyPost = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.id;
     const result = await postService.getMyPosts(userId as string);
-
 
     sendResponse(res, {
       success: true,
@@ -34,11 +32,7 @@ const getMyPost = catchAsync(
       message: "Single Data Retrieved Successfully",
       data: result,
     });
-  
   },
-
-
-  
 );
 
 const getPostById = catchAsync(
@@ -76,8 +70,30 @@ const createPost = catchAsync(
   },
 );
 const updatePost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const postId = req.params.id;
+
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const payload = req.body;
+
+    const result = await postService.updatePost(
+      postId as string,
+      payload,
+      authorId as string,
+      isAdmin,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Post Update Done",
+      data: result,
+    });
+  },
 );
+
 const deletePost = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {},
 );
