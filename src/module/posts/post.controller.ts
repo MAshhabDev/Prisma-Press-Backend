@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { postService } from "./post.service";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status";
+import { prisma } from "../../lib/prisma";
 
 const getAllPosts = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -19,8 +20,25 @@ const getAllPosts = catchAsync(
 const getPostStats = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {},
 );
+
+
 const getMyPost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+    const result = await postService.getMyPosts(userId as string);
+
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Single Data Retrieved Successfully",
+      data: result,
+    });
+  
+  },
+
+
+  
 );
 
 const getPostById = catchAsync(

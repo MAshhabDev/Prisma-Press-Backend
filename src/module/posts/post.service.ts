@@ -16,11 +16,36 @@ const getAllPosts = async () => {
   return result;
 };
 
-const getMyPosts = async () => {};
+const getMyPosts = async (authorId: string) => {
+  const result = await prisma.post.findMany({
+    where: {
+      authorId,
+    },
+
+    orderBy: {
+      create_at: "desc",
+    },
+    include: {
+      comment: true,
+      author: {
+        omit: {
+          password: true,
+        },
+      },
+      _count: {
+        select: {
+          comment: true,
+        },
+      },
+    },
+  });
+
+  return result;
+};
 
 const getPostStats = async () => {};
 
-const getPostById = async (userId:string) => {
+const getPostById = async (userId: string) => {
   const result = await prisma.post.findUniqueOrThrow({
     where: {
       id: userId,
