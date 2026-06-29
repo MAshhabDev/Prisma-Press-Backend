@@ -1,3 +1,4 @@
+import { PostStatus, Status } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import type { ICreatePostPayload, IPayload } from "./post.interface";
 
@@ -43,35 +44,127 @@ const getMyPosts = async (authorId: string) => {
   return result;
 };
 
-const getPostStats = async () => {};
+const getPostStats = async () => {
+  const transactionResult = await prisma.$transaction(async (tx) => {
+    const totalPosts = await tx.post.count();
+
+    const totalPublishedPosts = await tx.post.count({
+      where: {
+        status: PostStatus.PUBLISHED,
+      },
+    });
+    const totalArchivedPosts = await tx.post.count({
+      where: {
+        status: PostStatus.ARCHIVED,
+      },
+    });
+    const totalDraftPosts = await tx.post.count({
+      where: {
+        status: PostStatus.DRAFT,
+      },
+    });
+    const totalApprovedComments = await tx.comment.count({
+      where: {
+        status: Status.APPROVED,
+      },
+    });
+    const totalRejectedComments = await tx.comment.count({
+      where: {
+        status: Status.REJECT,
+      },
+    });
+
+    const totalViewsAggregate = await tx.post.aggregate({
+      _sum: {
+        views: true,
+      },
+    });
+    const totalViews = totalViewsAggregate._sum.views;
+
+    return {
+      totalPosts,
+      totalPublishedPosts,
+      totalArchivedPosts,
+      totalDraftPosts,
+      totalApprovedComments,
+      totalRejectedComments,
+      totalViews,
+    };
+  });
+
+  return transactionResult;
+};
 
 const getPostById = async (userId: string) => {
-  const result = await prisma.post.findUniqueOrThrow({
-    where: {
-      id: userId,
-    },
-  });
+  // const result = await prisma.post.findUniqueOrThrow({
+  //   where: {
+  //     id: userId,
+  //   },
+  // });
 
-  const updatePost = await prisma.post.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      views: {
-        increment: 1,
+  // const updatePost = await prisma.post.update({
+  //   where: {
+  //     id: userId,
+  //   },
+  //   data: {
+  //     views: {
+  //       increment: 1,
+  //     },
+  //   },
+  //   include: {
+  //     author: {
+  //       omit: {
+  //         password: true,
+  //       },
+  //     },
+  //     comment: true,
+  //   },
+  // });
+
+  const transactionResult = await prisma.$transaction(async (tx) => {
+    await tx.post.update({
+      where: {
+        id: userId,
       },
-    },
-    include: {
-      author: {
-        omit: {
-          password: true,
+      data: {
+        views: {
+          increment: 1,
         },
       },
-      comment: true,
-    },
-  });
+    });
 
-  return updatePost;
+    const post = await tx.post.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+      include: {
+        author: {
+          omit: {
+            password: true,
+          },
+        },
+
+        comments: {
+          where: {
+            status: Status.APPROVED,
+          },
+
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+
+        _count: {
+          select: {
+            comment: true,
+          },
+        },
+      },
+    });
+
+    return post;
+  });
+  return transactionResult;
 };
 
 const createPost = async (payload: ICreatePostPayload, userId: string) => {
