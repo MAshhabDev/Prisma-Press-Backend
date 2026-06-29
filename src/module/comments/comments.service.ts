@@ -21,6 +21,48 @@ const createComments = async (
   return result;
 };
 
+const getCommentByAuthorId = async (authorId: string) => {
+  const result = await prisma.comment.findMany({
+    where: {
+      id: authorId,
+    },
+
+    orderBy: {
+      create_at: "desc",
+    },
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  });
+
+  return result;
+};
+
+const getCommentByCommentId = async (postId: string) => {
+  const result = await prisma.comment.findMany({
+    where: {
+      id: postId,
+    },
+    include: {
+      post: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  });
+
+  return result;
+};
+
 export const commentService = {
   createComments,
+  getCommentByAuthorId,
+  getCommentByCommentId
 };
