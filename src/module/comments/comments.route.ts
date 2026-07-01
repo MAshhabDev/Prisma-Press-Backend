@@ -18,3 +18,5 @@ router.delete(
   auth(Role.ADMIN, Role.USER),
   commentController.deleteComment,
 );
+
+export const commentRoutes = router;

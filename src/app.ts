@@ -8,6 +8,10 @@ import { prisma } from "./lib/prisma";
 import bcrypt from "bcrypt";
 import { userRoutes } from "./module/users/user.route";
 import { authRouters } from "./module/auth/auth.route";
+import { postRoutes } from "./module/posts/post.route";
+import { commentRoutes } from "./module/comments/comments.route";
+import { notFound } from "./middlewares/notfound";
+import { globalErrorHandler } from "./middlewares/globalErrorHandler";
 
 export const app: Application = express();
 
@@ -29,6 +33,15 @@ app.use(cookieParser());
 app.use("/api/users", userRoutes)
 app.use("/api/auth", authRouters)
 
+app.use("/api/users", userRoutes)
+app.use("/api/posts", postRoutes)
+app.use("/api/comments", commentRoutes)
+
+
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World");
 });
+
+app.use(notFound)
+
+app.use(globalErrorHandler)
